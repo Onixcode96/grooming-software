@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { getTenantId } from "@/hooks/useTenant";
 
 export interface Pet {
   id: string;
@@ -38,9 +39,10 @@ export const useAddPet = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (pet: Omit<Pet, "id" | "age" | "last_visit"> & { user_id: string; age: number }) => {
+      const tenant_id = await getTenantId();
       const { data, error } = await supabase
         .from("pets")
-        .insert(pet)
+        .insert({ ...pet, tenant_id } as any)
         .select("id, name, type, breed, weight, age, date_of_birth, photo, allergies, notes, last_visit")
         .single();
       if (error) throw error;

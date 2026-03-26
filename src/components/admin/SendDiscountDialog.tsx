@@ -10,6 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Loader2, Gift, Percent } from "lucide-react";
 import { useTranslation } from "react-i18next";
+import { getTenantId } from "@/hooks/useTenant";
 
 interface SendDiscountDialogProps {
   open: boolean;
@@ -35,15 +36,16 @@ const SendDiscountDialog = ({ open, onOpenChange, client }: SendDiscountDialogPr
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
+      const tenant_id = await getTenantId();
       const serviceName = serviceId === "all" ? t("admin.allServices") : services.find((s) => s.id === serviceId)?.name || "";
       const msg = t("admin.discountChatMsg", { percent: percentage, service: serviceName });
-      const { error: msgError } = await supabase.from("messages").insert({ sender_id: user.id, receiver_id: client.user_id, content: msg });
+      const { error: msgError } = await supabase.from("messages").insert({ sender_id: user.id, receiver_id: client.user_id, content: msg, tenant_id } as any);
       if (msgError) throw msgError;
       if (saveAsDefault) {
         const svcFilter = serviceId === "all" ? null : serviceId;
         if (svcFilter) await supabase.from("discount_settings" as any).delete().eq("service_id", svcFilter);
         else await supabase.from("discount_settings" as any).delete().is("service_id", null);
-        await supabase.from("discount_settings" as any).insert({ percentage: parseInt(percentage), service_id: svcFilter, is_active: true, loyal_only: true });
+        await supabase.from("discount_settings" as any).insert({ percentage: parseInt(percentage), service_id: svcFilter, is_active: true, loyal_only: true, tenant_id });
       }
       toast.success(t("admin.discountSent", { percent: percentage, name: client.display_name }));
       onOpenChange(false);

@@ -58,12 +58,18 @@ Deno.serve(async (req) => {
     const reminderMessage =
       "Care is a form of love... è passato un mese dall'ultima coccola! Se vuoi, sono qui per fissare il prossimo appuntamento. 🐾";
 
+    // Get admin's tenant_id
+    const { data: adminRole } = await supabase
+      .from("user_roles")
+      .select("tenant_id")
+      .eq("user_id", adminId)
+      .maybeSingle();
+    const tenantId = adminRole?.tenant_id;
+
     let sent = 0;
     for (const [userId, lastDate] of latestByUser) {
       if (userId === adminId) continue;
-      // Check if last visit was around 30 days ago
       if (lastDate >= dateStr && lastDate < dateStrEnd) {
-        // Check we haven't already sent this reminder recently
         const { data: recentMessages } = await supabase
           .from("messages")
           .select("id")
@@ -81,6 +87,7 @@ Deno.serve(async (req) => {
             sender_id: adminId,
             receiver_id: userId,
             content: reminderMessage,
+            tenant_id: tenantId,
           });
           sent++;
         }

@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { sendPushNotification } from "@/hooks/usePushNotifications";
+import { getTenantId } from "@/hooks/useTenant";
 
 export interface Message {
   id: string;
@@ -181,11 +182,13 @@ export const useChat = () => {
     };
     setMessages((prev) => [...prev, optimisticMsg]);
 
+    const tenant_id = await getTenantId();
     const { error } = await supabase.from("messages").insert({
       sender_id: currentUserId,
       receiver_id: targetReceiverId,
       content: trimmed,
-    });
+      tenant_id,
+    } as any);
 
     if (error) {
       setMessages((prev) => prev.filter((m) => m.id !== optimisticMsg.id));

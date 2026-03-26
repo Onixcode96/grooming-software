@@ -3,6 +3,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
 import { useTranslation } from "react-i18next";
 import { useMemo } from "react";
+import { getTenantId } from "@/hooks/useTenant";
 
 export interface Service {
   id: string;
@@ -64,7 +65,8 @@ export const useCreateService = () => {
   const qc = useQueryClient();
   return useMutation({
     mutationFn: async (input: Partial<ServiceInput> & { name: string }) => {
-      const { error } = await supabase.from("services").insert(input as any);
+      const tenant_id = await getTenantId();
+      const { error } = await supabase.from("services").insert({ ...input, tenant_id } as any);
       if (error) throw error;
     },
     onSuccess: () => {

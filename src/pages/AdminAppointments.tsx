@@ -5,6 +5,7 @@ import { Check, X, ChevronLeft, ChevronRight, Banknote, CreditCard, Loader2, Mes
 import { toast } from "@/hooks/use-toast";
 import { supabase } from "@/integrations/supabase/client";
 import { sendPushNotification } from "@/hooks/usePushNotifications";
+import { getTenantId } from "@/hooks/useTenant";
 import { format, addDays, subDays } from "date-fns";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Textarea } from "@/components/ui/textarea";
@@ -84,7 +85,8 @@ const AdminAppointments = () => {
   const sendChatMessage = async (userId: string, content: string) => {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
-    await supabase.from("messages").insert({ sender_id: user.id, receiver_id: userId, content });
+    const tenant_id = await getTenantId();
+    await supabase.from("messages").insert({ sender_id: user.id, receiver_id: userId, content, tenant_id } as any);
   };
 
   const optimisticUpdateStatus = (aptId: string, newStatus: string) => {

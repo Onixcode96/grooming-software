@@ -1,6 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "@/hooks/use-toast";
+import { getTenantId } from "@/hooks/useTenant";
 
 export interface Settings {
   id: string;
@@ -47,7 +48,8 @@ export const useUpdateSettings = () => {
         .maybeSingle();
 
       if (!existing) {
-        const { error } = await supabase.from("settings").insert(updates as any);
+        const tenant_id = await getTenantId();
+        const { error } = await supabase.from("settings").insert({ ...updates, tenant_id } as any);
         if (error) throw error;
       } else {
         const { error } = await supabase
