@@ -1,0 +1,1 @@
+ALTER TABLE public.settings ADD COLUMN theme_color text NOT NULL DEFAULT 'rose';

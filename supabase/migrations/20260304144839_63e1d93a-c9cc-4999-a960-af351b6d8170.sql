@@ -1,0 +1,1 @@
+ALTER TABLE public.appointments ADD COLUMN is_paid boolean NOT NULL DEFAULT false;
